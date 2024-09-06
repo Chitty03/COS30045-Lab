@@ -3,25 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Data Visualisation Exercise">
-    <meta name="keywords" content="HTML, CSS, D3, Data Visualization">
-    <meta name="author" content="Joe Bloggs">
-    <title>Bar Chart Example</title>
-
-    <!-- Load D3.js -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    
-    <!-- Link to external JavaScript file -->
-    <script src="script.js" defer></script>
-
+    <title>Bar Chart with D3.js</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
         h1 {
-            text-align: center;
+            color: #333;
         }
-
+        svg {
+            background-color: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .bar {
+            fill: #007bff;
+            transition: fill 0.3s;
+        }
+        .bar:hover {
+            fill: #0056b3;
+        }
+        .label {
+            fill: #333;
+            font-size: 14px;
+            font-weight: bold;
+            text-anchor: middle;
+        }
         button {
 			margin: 5px;
 			padding: 10px 20px;
@@ -60,32 +75,32 @@
         .button:hover {
             background-color: #1a242f;
         }
+
         footer {
-            color: grey;
             text-align: center;
-            margin-top: 20px;
+            padding: 10px;
+            margin-top: 30px;
+            background-color: #2c3e50;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
         }
     </style>
 </head>
 <body>
-
     <div class="button-container">
+        <a href="index.html" class="button">Homepage</a>
         <a href="lab2.1.html" class="button">Lab2.1</a>
         <a href="lab2.2.html" class="button">Lab2.2</a>
         <a href="lab2.3.html" class="button">Lab2.3</a>
         <a href="lab2.4.html" class="button">Lab2.4</a>
     </div>
-
     <h1>Drawing with Data</h1>
+    <svg width="600" height="400"></svg>
 
-    <!-- Container for the bar chart -->
-    <div id="chart"></div>
+    <footer>COS30045 Data Visualisation<br>Jay Blogs</footer>
 
-    <!-- Footer -->
-    <footer>
-        COS30045 Data Visualisation<br>
-        Joe Bloggs
-    </footer>
-
+    <script src="script.js"></script>
 </body>
 </html>
