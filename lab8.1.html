@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Victorian LGA Map</title>
+    <style>
+        /* Add some basic styling for the SVG map */
+        svg {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Victorian LGA Map</h1>
+    <div id="map"></div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        // Step 1: Set up the SVG canvas dimensions
+        var w = 500; // Width of the SVG
+        var h = 300; // Height of the SVG
+
+        // Step 2: Set up the Mercator projection
+        // We use the Mercator projection, centered on the coordinates of Victoria, Australia
+        var projection = d3.geoMercator()
+            .center([145, -36.51]) // Center the map on Victoria (longitude, latitude)
+            .translate([w / 2, h / 2]) // Translate to center the map on the SVG canvas
+            .scale(2450); // Scale the map so that Victoria fits nicely in the view
+
+        // Step 3: Set up the geoPath generator
+        // This will convert the GeoJSON data into SVG path elements
+        var path = d3.geoPath()
+            .projection(projection); // Use the defined projection
+
+        // Step 4: Create the SVG element and append it to the DOM
+        var svg = d3.select("#map")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h)
+            .attr("fill", "grey"); // Set the color for the map
+
+        // Step 5: Load and process the GeoJSON file
+        // Replace 'LGA_VIC.json' with the path to the actual GeoJSON file
+        d3.json("LGA_VIC.json").then(function(json) {
+            // Bind the data to the SVG path elements and append them
+            svg.selectAll("path")
+                .data(json.features) // Each LGA is a feature in the GeoJSON
+                .enter()
+                .append("path")
+                .attr("d", path); // Use the geoPath to create the path
+
+        }).catch(function(error) {
+            console.error("Error loading GeoJSON file:", error);
+        });
+
+    </script>
+</body>
+</html>

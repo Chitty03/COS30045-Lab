@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pie Chart Example</title>
+    <style>
+        body {
+			font-family: 'Arial', sans-serif;
+			background-color: #f0f8ff;
+			color: #333;
+			margin: 0;
+			padding: 20px;
+			line-height: 1.6;
+			text-align: center;
+		}
+        .arc path {
+            stroke: #fff;
+        }
+        text {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            fill: white;
+            text-anchor: middle;
+        }
+        button {
+			margin: 5px;
+			padding: 10px 20px;
+			cursor: pointer;
+			font-size: 1em;
+			border: none;
+			border-radius: 5px;
+			background-color: #2c3e50;
+			color: white;
+			transition: background-color 0.3s ease;
+		}
+
+		button:hover {
+			background-color: #1abc9c;
+		}
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+            margin: 5px;
+        }
+
+        .button:hover {
+            background-color: #1a242f;
+        }
+
+		/* Footer styles */
+		footer {
+            font-family: 'Arial', sans-serif;
+			text-align: center;
+			padding: 10px;
+			margin-top: 30px;
+			background-color: #2c3e50;
+			color: white;
+			position: fixed;
+			width: 100%;
+			bottom: 0;
+		}
+    </style>
+</head>
+<body>
+    <div class="button-container">
+		<a href="index.html" class="button">Homepage</a>
+        <a href="lab7.1.html" class="button">Lab7.1</a>
+        <a href="lab7.2.html" class="button">Lab7.2</a>
+        <a href="lab7.3.html" class="button">Lab7.3</a>
+    </div> 
+
+    <h1>Pie Chart Example</h1>
+    <div id="chart"></div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        // Step 1: Set up the data
+        // We'll use an array of numbers as the data for the pie chart.
+        // The values represent the relative proportions of the chart segments.
+        var dataset = [45, 25, 20, 10, 6, 5];
+
+        // Step 2: Set up the SVG canvas dimensions
+        var w = 300;
+        var h = 300;
+        var radius = Math.min(w, h) / 2; // Calculate the radius as half of the width/height
+
+        // Step 3: Create the SVG element and append it to the DOM
+        var svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h)
+            .append("g") // Append a group element
+            .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")"); // Move the group to the center of the canvas
+
+        // Step 4: Set up the color scale for the pie chart
+        // D3's color scale schemeCategory10 provides 10 predefined colors.
+        var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        // Step 5: Set up the pie function
+        // The pie function calculates the start and end angles for each segment.
+        var pie = d3.pie();
+
+        // Step 6: Set up the arc generator
+        // This generates the actual path data for the arcs based on the pie angles.
+        var arc = d3.arc()
+            .innerRadius(0) // No inner radius, meaning this is a full pie chart, not a donut chart
+            .outerRadius(radius); // Outer radius is the total radius of the pie
+
+        // Step 7: Bind the data and create one group (g) for each pie slice
+        var arcs = svg.selectAll("g.arc")
+            .data(pie(dataset)) // Bind data to arcs
+            .enter()
+            .append("g")
+            .attr("class", "arc");
+
+        // Step 8: Draw the arcs (pie slices) and fill with colors
+        arcs.append("path")
+            .attr("fill", function(d, i) {
+                return color(i); // Use color scale to fill the slices
+            })
+            .attr("d", arc); // Use the arc generator to create the path
+
+        // Step 9: Add text labels to each slice
+        // We use the centroid function to position the text in the middle of each slice.
+        arcs.append("text")
+            .attr("transform", function(d) {
+                return "translate(" + arc.centroid(d) + ")"; // Calculate the position of the label
+            })
+            .text(function(d) {
+                return d.data; // Display the data value for each slice
+            });
+
+    </script>
+
+<footer>COS30045 Data Visualisation<br>Jay Bloggs</footer>
+
+</body>
+</html>
