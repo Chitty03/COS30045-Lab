@@ -33,18 +33,15 @@
         var h = 300;
         var padding = 40;
 
-        // Debugging: Log CSV loading errors
+        // Load the CSV data
         d3.csv("Unemployment_78-95.csv").then(function(data) {
             console.log("Data loaded:", data);
-            
+
             // Parse the data into Date objects and numbers
             data.forEach(function(d) {
                 d.date = new Date(+d.year, +d.month - 1);
                 d.number = +d.number;
             });
-
-            // Debugging: Log after parsing
-            console.log("Parsed data:", data);
 
             // Scales
             var xScale = d3.scaleTime()
@@ -101,7 +98,10 @@
 
             // Axes
             var xAxis = d3.axisBottom(xScale);
-            var yAxis = d3.axisLeft(yScale);
+            
+            // Properly format the y-axis ticks
+            var yAxis = d3.axisLeft(yScale)
+                .tickFormat(d3.format(".2s")); // Shorten large numbers (e.g., 500k becomes 500,000)
 
             svg.append("g")
                 .attr("transform", "translate(0," + (h - padding) + ")")
