@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Chart with Mouse Over</title>
+
+    <!-- Include D3.js library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Styles for the page -->
+    <style>
+        /* Basic styling for body */
+        body {
+            font-family: sans-serif;
+            background-color: #f4f7f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* SVG element styling to center it */
+        svg {
+            font-size: 12px;
+            margin: 0 auto;
+            display: block; /* Allows margin: auto to work */
+        }
+
+        /* Default bar color */
+        .bar {
+            fill: grey;
+        }
+
+        /* Change bar color on hover */
+        .bar:hover {
+            fill: orange;
+        }
+
+        /* Button styling */
+        .button {
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #2c3e50;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a shadow for depth */
+            text-decoration: none;
+            display: inline-block;
+        }
+    
+        /* Hover effect for buttons */
+        .button:hover {
+            background-color: #1abc9c;
+            transform: translateY(-2px); /* Slight lift effect on hover */
+            box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.2); /* Make shadow deeper on hover */
+        }
+    
+        /* Active button state */
+        .button:active {
+            transform: translateY(0); /* Reset lift effect on click */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Return to normal shadow on click */
+        }
+    
+        /* Center the buttons */
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Tooltip styling */
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: 30px;
+            height: 20px;
+            background-color: orange;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 5px;
+            visibility: hidden; /* Hidden by default */
+        }
+
+        /* Footer styling */
+        footer {
+            text-align: center;
+            padding: 10px;
+            margin-top: 30px;
+            background-color: #2c3e50;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Page heading -->
+<h2 style="padding: 20px; text-align: center;">Bar Chart with Mouse Over</h2>
+
+<!-- Container for buttons and the SVG chart -->
+<div class="container">
+    <!-- Button container -->
+    <div class="button-container">
+        <a href="index.html" class="button">Homepage</a>
+        <a href="lab6.2.html" class="button">Lab6.2</a>
+        <button id="addButton" class="button">Add</button>
+        <button id="removeButton" class="button">Remove</button>
+        <button id="updateButton" class="button">Update</button>
+    </div>
+
+    <!-- SVG element for rendering the bar chart -->
+    <svg width="500" height="250"></svg>
+</div>
+
+<!-- Tooltip for displaying bar values on hover -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- Footer -->
+<footer>
+    COS30045 Data Visualisation<br>Joe Bloggs
+</footer>
+
+<!-- D3.js script for rendering and updating the chart -->
+<script>
+    // Set up SVG dimensions and margins
+    const svgWidth = 500;
+    const svgHeight = 250;
+    const margin = {top: 20, right: 30, bottom: 30, left: 40};
+    const width = svgWidth - margin.left - margin.right;
+    const height = svgHeight - margin.top - margin.bottom;
+    const maxValue = 25; // Max value for randomly generated bars
+
+    // Initial dataset
+    let dataset = [24, 10, 29, 19, 8, 15, 20, 12, 9, 6, 21, 28];
+
+    // Select the SVG element and append a group element to account for margins
+    const svg = d3.select("svg")
+        .attr("width", svgWidth)
+        .attr("height", svgHeight)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    // Tooltip element for showing data on hover
+    const tooltip = d3.select("#tooltip");
+
+    // X scale (ordinal, band scale) for positioning bars horizontally
+    const xScale = d3.scaleBand()
+        .domain(d3.range(dataset.length)) // X domain based on dataset length
+        .range([0, width]) // X range based on chart width
+        .paddingInner(0.05); // Add padding between bars
+
+    // Y scale (linear scale) for bar height
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(dataset)]) // Y domain based on data values
+        .range([height, 0]); // Inverted range so bars grow upwards
+
+    // Function to render the bars
+    function renderBars() {
+        const bars = svg.selectAll("rect")
+            .data(dataset); // Bind the dataset to rect elements (bars)
+
+        // Enter selection for new data and merge it with existing bars
+        bars.enter()
+            .append("rect")
+            .attr("class", "bar") // Class for default bar styling
+            .merge(bars)
+            .attr("x", (d, i) => xScale(i)) // X position of each bar
+            .attr("y", d => yScale(d)) // Y position of each bar (based on data value)
+            .attr("width", xScale.bandwidth()) // Width of each bar
+            .attr("height", d => height - yScale(d)) // Height of each bar
+            .on("mouseover", function (event, d) { // Show tooltip on hover
+                d3.select(this).attr("fill", "orange"); // Change color on hover
+                tooltip.style("visibility", "visible") // Show tooltip
+                    .text(d) // Display data value
+                    .style("left", (event.pageX + 10) + "px") // Tooltip X position
+                    .style("top", (event.pageY - 10) + "px"); // Tooltip Y position
+            })
+            .on("mousemove", function (event) { // Move tooltip as mouse moves
+                tooltip.style("left", (event.pageX + 10) + "px")
+                       .style("top", (event.pageY - 10) + "px");
+            })
+            .on("mouseout", function () { // Hide tooltip on mouse out
+                d3.select(this).attr("fill", "steelblue"); // Reset color
+                tooltip.style("visibility", "hidden"); // Hide tooltip
+            });
+
+        // Remove bars that no longer have corresponding data
+        bars.exit().remove();
+    }
+
+    // Initial rendering of bars
+    renderBars();
+
+    // Function to update the chart with new random data
+    function updateChart() {
+        dataset = dataset.map(() => Math.floor(Math.random() * maxValue)); // Replace dataset with random values
+        yScale.domain([0, d3.max(dataset)]); // Update Y scale based on new dataset
+        renderBars(); // Re-render the chart
+    }
+
+    // Function to add a new bar with random value
+    function addBar() {
+        const newNumber = Math.floor(Math.random() * maxValue); // Generate random number
+        dataset.push(newNumber); // Add new value to dataset
+        xScale.domain(d3.range(dataset.length)); // Update X scale to account for new bar
+        renderBars(); // Re-render the chart
+    }
+
+    // Function to remove the last bar
+    function removeBar() {
+        dataset.pop(); // Remove last value from dataset
+        xScale.domain(d3.range(dataset.length)); // Update X scale to account for removed bar
+        renderBars(); // Re-render the chart
+    }
+
+    // Event listeners for the buttons
+    d3.select("#addButton").on("click", addBar); // Add bar on button click
+    d3.select("#removeButton").on("click", removeBar); // Remove bar on button click
+    d3.select("#updateButton").on("click", updateChart); // Update chart on button click
+</script>
+
+</body>
+</html>

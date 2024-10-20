@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Data</title>
+
+    <!-- Include D3.js library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- Styles for the page -->
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f7f8; /* Background color */
+            margin: 0;
+            padding: 20px;
+        }
+
+        svg {
+            font-size: 12px;
+            margin: 0 auto; /* Center the SVG horizontally */
+            display: block; /* Allows margin: auto to work */
+        }
+
+        .axis path, .axis line, .axis text {
+            display: none; /* Hides axis lines and text for a cleaner look */
+        }
+
+        /* Button styling */
+        .button {
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #2c3e50;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Add a shadow for depth */
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Hover effect on buttons */
+        .button:hover {
+            background-color: #1abc9c;
+            transform: translateY(-2px); /* Slight lift effect on hover */
+            box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.2); /* Make shadow deeper on hover */
+        }
+
+        /* Active button state */
+        .button:active {
+            transform: translateY(0); /* Reset lift effect on click */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Return to normal shadow on click */
+        }
+
+        /* Container for buttons */
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Footer styling */
+        footer {
+            text-align: center;
+            padding: 10px;
+            margin-top: 30px;
+            background-color: #2c3e50;
+            color: white;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+    
+</head>
+<body>
+
+<!-- Page heading -->
+<h2 style="padding: 20px; text-align: center;">Update Data</h2>
+
+<!-- Main content container -->
+<div class="container">
+    <!-- Container for navigation buttons and update button -->
+    <div class="button-container">
+        <a href="index.html" class="button">Homepage</a>
+        <a href="Lab5.2.html" class="button">Lab5.2</a>
+        <button id="updateButton" class="button">Update Once</button>
+    </div>
+
+    <!-- SVG element where the chart will be rendered -->
+    <svg width="500" height="250"></svg>
+</div>
+
+<!-- Footer content -->
+<footer>
+    COS30045 Data Visualisation<br>Joe Bloggs
+</footer>
+
+<!-- D3.js script for chart rendering and updating -->
+<script>
+    // Define the dimensions and margins of the chart
+    const svgWidth = 500;
+    const svgHeight = 250;
+    const margin = {top: 20, right: 30, bottom: 30, left: 40};
+    const width = svgWidth - margin.left - margin.right;
+    const height = svgHeight - margin.top - margin.bottom;
+    const maxValue = 25; // Maximum value for randomly generated numbers
+
+    // Initial dataset for the chart
+    let dataset = [24, 10, 29, 19, 8, 15, 20, 12, 9, 6, 21, 28];
+
+    // Create the SVG container and a group element for the chart
+    const svg = d3.select("svg")
+        .attr("width", svgWidth)
+        .attr("height", svgHeight)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`); // Shifts the chart to leave margins
+
+    // X scale (ordinal, band scale) for horizontal positioning
+    const xScale = d3.scaleBand()
+        .domain(d3.range(dataset.length)) // Create a scale based on the number of elements in the dataset
+        .range([0, width]) // Map the scale to the available width
+        .paddingInner(0.05); // Add padding between bars
+
+    // Y scale (linear) for vertical positioning
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(dataset)]) // Y scale is based on the max value of the dataset
+        .range([height, 0]); // Inverted because SVG coordinates are top to bottom
+
+    // Create bars for the initial dataset
+    svg.selectAll("rect")
+        .data(dataset)
+        .enter()
+        .append("rect")
+        .attr("x", (d, i) => xScale(i)) // X position based on index
+        .attr("y", d => yScale(d)) // Y position based on data value
+        .attr("width", xScale.bandwidth()) // Width based on the bandwidth of the scale
+        .attr("height", d => height - yScale(d)) // Height is the difference between max height and the scaled value
+        .attr("fill", "slategrey"); // Bar color
+
+    // Function to update the chart with new random data
+    function updateChart() {
+        const numValues = dataset.length; // Get the number of values in the dataset
+        dataset = []; // Clear the dataset
+        for (let i = 0; i < numValues; i++) {
+            // Generate random numbers and add them to the dataset
+            const newNumber = Math.floor(Math.random() * maxValue); // Random number between 0 and maxValue
+            dataset.push(newNumber);
+        }
+
+        // Update the Y scale domain based on the new dataset
+        yScale.domain([0, d3.max(dataset)]);
+
+        // Select all bars, bind new data, and update them
+        svg.selectAll("rect")
+            .data(dataset)
+            .transition() // Add transition for smooth animation
+            .duration(500) // Duration of the animation (in milliseconds)
+            .attr("y", d => yScale(d)) // Update Y position of bars
+            .attr("height", d => height - yScale(d)); // Update height of bars
+    }
+
+    // Add event listener for the update button
+    d3.select("#updateButton").on("click", function() {
+        updateChart(); // Call the update function when button is clicked
+        alert("Hey, the button works!"); // Show a message when button is clicked
+    });
+</script>
+
+</body>
+</html>

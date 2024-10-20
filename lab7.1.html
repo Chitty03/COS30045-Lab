@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unemployment in Australia</title>
+    <style>
+        .line {
+            fill: none;
+            stroke: slategrey;
+            stroke-width: 0.5;
+        }
+        .area {
+            fill: steelblue;
+        }
+        .halfMilLine {
+            stroke: red;
+            stroke-dasharray: 5;
+        }
+        .halfMilLabel {
+            font-size: 12px;
+            fill: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Number of Unemployed in Australia</h1>
+    <div id="chart"></div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        var w = 600;
+        var h = 300;
+        var padding = 40;
+
+        // Debugging: Log CSV loading errors
+        d3.csv("Unemployment_78-95.csv").then(function(data) {
+            console.log("Data loaded:", data);
+            
+            // Parse the data into Date objects and numbers
+            data.forEach(function(d) {
+                d.date = new Date(+d.year, +d.month - 1);
+                d.number = +d.number;
+            });
+
+            // Debugging: Log after parsing
+            console.log("Parsed data:", data);
+
+            // Scales
+            var xScale = d3.scaleTime()
+                .domain(d3.extent(data, function(d) { return d.date; }))
+                .range([padding, w - padding]);
+
+            var yScale = d3.scaleLinear()
+                .domain([0, d3.max(data, function(d) { return d.number; })])
+                .range([h - padding, padding]);
+
+            // Line generator
+            var line = d3.line()
+                .x(function(d) { return xScale(d.date); })
+                .y(function(d) { return yScale(d.number); });
+
+            // Area generator
+            var area = d3.area()
+                .x(function(d) { return xScale(d.date); })
+                .y0(h - padding)  // Base of area chart
+                .y1(function(d) { return yScale(d.number); });
+
+            // Create the SVG canvas
+            var svg = d3.select("#chart")
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h);
+
+            // Draw the area
+            svg.append("path")
+                .datum(data)
+                .attr("class", "area")
+                .attr("d", area);
+
+            // Draw the line
+            svg.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("d", line);
+
+            // Half a million line
+            svg.append("line")
+                .attr("class", "halfMilLine")
+                .attr("x1", padding)
+                .attr("y1", yScale(500000))
+                .attr("x2", w - padding)
+                .attr("y2", yScale(500000));
+
+            // Half a million label
+            svg.append("text")
+                .attr("class", "halfMilLabel")
+                .attr("x", padding + 10)
+                .attr("y", yScale(500000) - 7)
+                .text("Half a million unemployed");
+
+            // Axes
+            var xAxis = d3.axisBottom(xScale);
+            var yAxis = d3.axisLeft(yScale);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + (h - padding) + ")")
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("transform", "translate(" + padding + ",0)")
+                .call(yAxis);
+
+        }).catch(function(error) {
+            console.error("Error loading CSV file:", error);
+        });
+    </script>
+</body>
+</html>
