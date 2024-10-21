@@ -80,7 +80,7 @@
         <a href="lab8.1.html" class="button">Lab8.1</a>
         <a href="lab8.2.html" class="button">Lab8.2</a>
     </div> 
-    
+
     <h1>Victorian Number Unemployed by LGA</h1>
     <div id="map"></div>
     
@@ -108,7 +108,7 @@
             .attr("height", height);
     
         // Load the GeoJSON data (replace with correct Victorian LGA GeoJSON)
-        d3.json("vic_lga.geojson").then(function(json) {
+        d3.json("LGA_VIC.json").then(function(json) {
     
             // Load the unemployment data
             d3.csv("VIC_LGA_unemployment.csv").then(function(data) {
