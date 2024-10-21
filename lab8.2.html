@@ -80,88 +80,102 @@
         <a href="lab8.1.html" class="button">Lab8.1</a>
         <a href="lab8.2.html" class="button">Lab8.2</a>
     </div> 
-
+    
     <h1>Victorian Number Unemployed by LGA</h1>
     <div id="map"></div>
-
-    <script src="https://d3js.org/d3.v6.min.js"></script>
+    
     <script>
-        var w = 500;
-        var h = 400;
-
+        var width = 800;
+        var height = 600;
+    
+        // Define the color scale using D3's scaleQuantize function
+        var color = d3.scaleQuantize()
+            .range(d3.schemePurples[9])  // Using ColorBrewer's schemePurples for color scale
+            .domain([0, 5000]);  // Adjust the domain based on unemployment range
+    
+        // Define the projection and path for the map
         var projection = d3.geoMercator()
-            .center([145, -36.51])
-            .translate([w / 2, h / 2])
-            .scale(2450);
-
+            .center([145, -37])  // Centering the map over Victoria
+            .scale(4000)         // Adjust the scale for zoom level
+            .translate([width / 2, height / 2]);
+    
         var path = d3.geoPath().projection(projection);
-
+    
+        // Create the SVG container for the map
         var svg = d3.select("#map")
             .append("svg")
-            .attr("width", w)
-            .attr("height", h);
-
-        // Color scale
-        var color = d3.scaleQuantize()
-            .range(d3.schemePurples[7]);
-
-        // Step 1: Load the CSV (unemployment data) and check if it's loading correctly
-        d3.csv("vic_LGA_unemployment.csv").then(function(data) {
-            console.log("CSV data loaded:", data);  // Log the CSV data for debugging
-
-            // Convert unemployment values to numeric and log min/max for color domain
-            data.forEach(function(d) {
-                d.unemployed = +d.unemployed;
-            });
-
-            var minUnemployed = d3.min(data, d => d.unemployed);
-            var maxUnemployed = d3.max(data, d => d.unemployed);
-            console.log("Unemployment data range:", minUnemployed, maxUnemployed);
-
-            // Set color domain based on unemployment data range
-            color.domain([minUnemployed, maxUnemployed]);
-
-            // Step 2: Load the GeoJSON (map data) and check if it's loading correctly
-            d3.json("LGA_VIC.json").then(function(json) {
-                console.log("GeoJSON data loaded:", json);  // Log the GeoJSON data for debugging
-
-                // Step 3: Link the CSV data with GeoJSON features
-                for (var i = 0; i < data.length; i++) {
-                    var dataLGA = data[i].LGA;
-                    var dataValue = data[i].unemployed;
-
-                    // Match LGA from CSV with GeoJSON
-                    for (var j = 0; j < json.features.length; j++) {
-                        var jsonLGA = json.features[j].properties.LGA_name;
-
-                        if (dataLGA === jsonLGA) {
-                            json.features[j].properties.unemployed = dataValue;
-                            break;
+            .attr("width", width)
+            .attr("height", height);
+    
+        // Load the GeoJSON data (replace with correct Victorian LGA GeoJSON)
+        d3.json("vic_lga.geojson").then(function(json) {
+    
+            // Load the unemployment data
+            d3.csv("VIC_LGA_unemployment.csv").then(function(data) {
+                // Map unemployment data to LGA properties in the GeoJSON
+                data.forEach(function(d) {
+                    var lgaName = d.LGA;  // Get the LGA name from CSV
+                    var unemployedCount = +d.unemployed;  // Get the unemployment number as integer
+    
+                    // Find the corresponding LGA in the GeoJSON and assign the unemployment number
+                    json.features.forEach(function(feature) {
+                        if (feature.properties.LGA_name === lgaName) {
+                            feature.properties.unemployed = unemployedCount;
                         }
-                    }
-                }
-
-                // Step 4: Draw the map and fill each LGA based on unemployment data
+                    });
+                });
+    
+                // Draw the map and fill color based on unemployment data
                 svg.selectAll("path")
                     .data(json.features)
                     .enter()
                     .append("path")
                     .attr("d", path)
-                    .attr("stroke", "black")
-                    .attr("fill", function(d) {
+                    .style("fill", function(d) {
+                        // Color the LGA based on the number of unemployed people
                         var value = d.properties.unemployed;
-                        return value ? color(value) : "#ccc"; // Gray if no data
-                    });
-
-            }).catch(function(error) {
-                console.error("Error loading GeoJSON:", error);
+                        return value ? color(value) : "#ccc";  // Gray for missing data
+                    })
+                    .style("stroke", "#333");
+    
+                // Load Victorian city data and plot them
+                d3.csv("VIC_city.csv").then(function(cityData) {
+                    svg.selectAll("circle")
+                        .data(cityData)
+                        .enter()
+                        .append("circle")
+                        .attr("cx", function(d) {
+                            return projection([d.lon, d.lat])[0];  // Map longitude to x
+                        })
+                        .attr("cy", function(d) {
+                            return projection([d.lon, d.lat])[1];  // Map latitude to y
+                        })
+                        .attr("r", 3)  // Circle radius for cities
+                        .style("fill", "red")  // Red color for city markers
+                        .style("opacity", 0.7);
+    
+                    // Add city names
+                    svg.selectAll("text")
+                        .data(cityData)
+                        .enter()
+                        .append("text")
+                        .attr("x", function(d) {
+                            return projection([d.lon, d.lat])[0] + 5;  // Offset text by 5px for readability
+                        })
+                        .attr("y", function(d) {
+                            return projection([d.lon, d.lat])[1] + 5;
+                        })
+                        .text(function(d) {
+                            return d.place;  // Display the city name
+                        })
+                        .style("font-size", "10px")
+                        .style("fill", "black");
+                });
             });
-
-        }).catch(function(error) {
-            console.error("Error loading CSV:", error);
         });
-
+    
     </script>
-</body>
+    
+    </body>
 <footer>COS30045 Data Visualisation<br>Jay Bloggs</footer>
 </html>

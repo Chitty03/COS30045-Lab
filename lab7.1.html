@@ -86,6 +86,7 @@
 </head>
 <body>
 
+    <!-- Container for navigation buttons -->
     <div class="button-container">
 		<a href="index.html" class="button">Homepage</a>
         <a href="lab7.1.html" class="button">Lab7.1</a>
@@ -93,100 +94,110 @@
         <a href="lab7.3.html" class="button">Lab7.3</a>
     </div> 
 
+    <!-- Main heading of the webpage -->
     <h1>Number of Unemployed in Australia</h1>
+
+    <!-- Empty div where the chart will be rendered -->
     <div id="chart"></div>
 
-
+    <!-- Importing D3.js library -->
     <script src="https://d3js.org/d3.v6.min.js"></script>
+
     <script>
-        var w = 600;
-        var h = 300;
-        var padding = 40;
+        // Set the dimensions of the chart
+        var w = 600;  // Width of the SVG
+        var h = 300;  // Height of the SVG
+        var padding = 40;  // Padding for axes
 
-        // Load the CSV data
+        // Load the CSV file with unemployment data
         d3.csv("Unemployment_78-95.csv").then(function(data) {
-            console.log("Data loaded:", data);
+            console.log("Data loaded:", data);  // Logging data to console to verify it's loaded correctly
 
-            // Parse the data into Date objects and numbers
+            // Parse each data entry: convert strings to dates and numbers
             data.forEach(function(d) {
-                d.date = new Date(+d.year, +d.month - 1);
-                d.number = +d.number;
+                d.date = new Date(+d.year, +d.month - 1);  // Creating Date objects (month is 0-indexed)
+                d.number = +d.number;  // Convert number from string to integer
             });
 
-            // Scales
-            var xScale = d3.scaleTime()
-                .domain(d3.extent(data, function(d) { return d.date; }))
-                .range([padding, w - padding]);
+            // Create scales for the x and y axes
+            var xScale = d3.scaleTime()  // Time scale for x-axis (dates)
+                .domain(d3.extent(data, function(d) { return d.date; }))  // Domain: min and max dates
+                .range([padding, w - padding]);  // Range: corresponds to the width of the chart
 
-            var yScale = d3.scaleLinear()
-                .domain([0, d3.max(data, function(d) { return d.number; })])
-                .range([h - padding, padding]);
+            var yScale = d3.scaleLinear()  // Linear scale for y-axis (unemployment numbers)
+                .domain([0, d3.max(data, function(d) { return d.number; })])  // Domain: 0 to max unemployment value
+                .range([h - padding, padding]);  // Range: corresponds to the height of the chart (flipped for y-axis)
 
-            // Line generator
+            // Line generator to create the line path
             var line = d3.line()
-                .x(function(d) { return xScale(d.date); })
-                .y(function(d) { return yScale(d.number); });
+                .x(function(d) { return xScale(d.date); })  // x-coordinate based on date
+                .y(function(d) { return yScale(d.number); });  // y-coordinate based on unemployment number
 
-            // Area generator
+            // Area generator for area chart
             var area = d3.area()
-                .x(function(d) { return xScale(d.date); })
-                .y0(h - padding)  // Base of area chart
-                .y1(function(d) { return yScale(d.number); });
+                .x(function(d) { return xScale(d.date); })  // x-coordinate based on date
+                .y0(h - padding)  // y0 (bottom of the area) is the bottom of the chart
+                .y1(function(d) { return yScale(d.number); });  // y1 (top of the area) is the data point value
 
-            // Create the SVG canvas
+            // Append the SVG canvas to the div with id="chart"
             var svg = d3.select("#chart")
                 .append("svg")
-                .attr("width", w)
-                .attr("height", h);
+                .attr("width", w)  // Set width of SVG
+                .attr("height", h);  // Set height of SVG
 
-            // Draw the area
+            // Append the area path to the SVG
             svg.append("path")
-                .datum(data)
-                .attr("class", "area")
-                .attr("d", area);
+                .datum(data)  // Bind the data to the path element
+                .attr("class", "area")  // Apply a CSS class to style it
+                .attr("d", area);  // Use the area generator to create the path
 
-            // Draw the line
+            // Append the line path to the SVG
             svg.append("path")
-                .datum(data)
-                .attr("class", "line")
-                .attr("d", line);
+                .datum(data)  // Bind the data to the path element
+                .attr("class", "line")  // Apply a CSS class to style it
+                .attr("d", line);  // Use the line generator to create the path
 
-            // Half a million line
+            // Add a line to indicate half a million unemployed
             svg.append("line")
-                .attr("class", "halfMilLine")
-                .attr("x1", padding)
-                .attr("y1", yScale(500000))
-                .attr("x2", w - padding)
-                .attr("y2", yScale(500000));
+                .attr("class", "halfMilLine")  // Apply a CSS class to style it
+                .attr("x1", padding)  // Start x-coordinate (left side of the chart)
+                .attr("y1", yScale(500000))  // Start y-coordinate at 500,000 unemployment (scaled)
+                .attr("x2", w - padding)  // End x-coordinate (right side of the chart)
+                .attr("y2", yScale(500000));  // End y-coordinate, same as y1 (horizontal line)
 
-            // Half a million label
+            // Add a label for the half-million line
             svg.append("text")
-                .attr("class", "halfMilLabel")
-                .attr("x", padding + 10)
-                .attr("y", yScale(500000) - 7)
-                .text("Half a million unemployed");
+                .attr("class", "halfMilLabel")  // Apply a CSS class to style it
+                .attr("x", padding + 10)  // x-coordinate (slightly offset from left padding)
+                .attr("y", yScale(500000) - 7)  // y-coordinate (slightly above the line)
+                .text("Half a million unemployed");  // Text to display
 
-            // Axes
+            // Create x-axis based on the xScale
             var xAxis = d3.axisBottom(xScale);
-            
-            // Properly format the y-axis ticks
+
+            // Create y-axis based on the yScale and format the ticks (shortened large numbers)
             var yAxis = d3.axisLeft(yScale)
-                .tickFormat(d3.format(".2s")); // Shorten large numbers (e.g., 500k becomes 500,000)
+                .tickFormat(d3.format(".2s"));  // Format numbers (e.g., 500k for 500,000)
 
+            // Append x-axis to the SVG
             svg.append("g")
-                .attr("transform", "translate(0," + (h - padding) + ")")
-                .call(xAxis);
+                .attr("transform", "translate(0," + (h - padding) + ")")  // Position at the bottom of the chart
+                .call(xAxis);  // Render the x-axis
 
+            // Append y-axis to the SVG
             svg.append("g")
-                .attr("transform", "translate(" + padding + ",0)")
-                .call(yAxis);
+                .attr("transform", "translate(" + padding + ",0)")  // Position on the left of the chart
+                .call(yAxis);  // Render the y-axis
 
         }).catch(function(error) {
+            // Error handling for CSV loading
             console.error("Error loading CSV file:", error);
         });
     </script>
 
+<!-- Footer section -->
 <footer>COS30045 Data Visualisation<br>Jay Bloggs</footer>
 
 </body>
+
 </html>
