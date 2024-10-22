@@ -167,7 +167,7 @@
                     // Tooltip div
                     var tooltip = d3.select("#tooltip");
 
-                    // Draw city circles
+                    // Draw city circles with increased radius
                     svg.selectAll("circle")
                         .data(cityData)
                         .enter()
@@ -178,7 +178,7 @@
                         .attr("cy", function(d) {
                             return projection([d.lon, d.lat])[1];  // Map latitude to y
                         })
-                        .attr("r", 3)  // Circle radius for cities
+                        .attr("r", 6)  // Increased circle radius for cities
                         .style("fill", "red")  // Red color for city markers
                         .style("opacity", 0.7)
                         // Add tooltip functionality
