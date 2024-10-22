@@ -84,14 +84,12 @@
         <a href="lab7.3.html" class="button">Lab7.3</a>
     </div> 
 
-
-    <h1>Stacked Bar Chart</h1>
+    <h1>Stacked Bar Chart with Legend</h1>
     <div id="chart"></div>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script>
         // Step 1: Set up the data
-        // We have an array of objects where each object represents a category with values for apples, oranges, and grapes.
         var dataset = [
             { apples: 5, oranges: 10, grapes: 22 },
             { apples: 4, oranges: 12, grapes: 28 },
@@ -106,15 +104,14 @@
         var padding = 40;
 
         // Step 3: Set up scales
-        // xScale is for the categories, yScale is for the values of apples, oranges, and grapes.
         var xScale = d3.scaleBand()
-            .domain(d3.range(dataset.length)) // Number of categories (apples, oranges, grapes)
+            .domain(d3.range(dataset.length))
             .range([padding, w - padding])
             .padding(0.1);
 
         var yScale = d3.scaleLinear()
             .domain([0, d3.max(dataset, function(d) {
-                return d.apples + d.oranges + d.grapes; // Stack total
+                return d.apples + d.oranges + d.grapes;
             })])
             .range([h - padding, padding]);
 
@@ -126,43 +123,69 @@
 
         // Step 5: Set up the stack function
         var stack = d3.stack()
-            .keys(["apples", "oranges", "grapes"]); // Keys define the layers for stacking
+            .keys(["apples", "oranges", "grapes"]);
 
-        // Step 6: Stack the data and create a series for each category
+        // Step 6: Stack the data
         var series = stack(dataset);
 
         // Step 7: Set up colors for each category
         var color = d3.scaleOrdinal(d3.schemeCategory10);
 
-        // Step 8: Create groups for each stack and draw the rectangles for each bar segment
+        // Step 8: Create groups for each stack and draw the rectangles
         svg.selectAll("g")
-            .data(series) // Bind the stacked data to the groups
+            .data(series)
             .enter()
             .append("g")
-            .attr("fill", function(d, i) { return color(i); }) // Fill based on category index
+            .attr("fill", function(d, i) { return color(i); })
             .selectAll("rect")
-            .data(function(d) { return d; }) // For each group, bind the data to rectangles
+            .data(function(d) { return d; })
             .enter()
             .append("rect")
-            .attr("x", function(d, i) { return xScale(i); }) // Position horizontally based on category index
-            .attr("y", function(d) { return yScale(d[1]); }) // The top of each rectangle
-            .attr("height", function(d) { return yScale(d[0]) - yScale(d[1]); }) // The height of the segment
-            .attr("width", xScale.bandwidth()); // Width of each bar segment
+            .attr("x", function(d, i) { return xScale(i); })
+            .attr("y", function(d) { return yScale(d[1]); })
+            .attr("height", function(d) { return yScale(d[0]) - yScale(d[1]); })
+            .attr("width", xScale.bandwidth());
 
         // Step 9: Add the y-axis
         var yAxis = d3.axisLeft(yScale);
-        
         svg.append("g")
             .attr("transform", "translate(" + padding + ",0)")
             .call(yAxis);
 
-        // Step 10: Add the x-axis labels for each category (index)
+        // Step 10: Add the x-axis labels
         var xAxis = d3.axisBottom(xScale)
-            .tickFormat(function(d, i) { return "Category " + (i + 1); }); // Custom labels for each category
-
+            .tickFormat(function(d, i) { return "Category " + (i + 1); });
         svg.append("g")
             .attr("transform", "translate(0," + (h - padding) + ")")
             .call(xAxis);
+
+        // Step 11: Create a legend
+        var keys = ["apples", "oranges", "grapes"];
+
+        // Create a group for the legend and place it
+        var legend = svg.append("g")
+            .attr("transform", "translate(" + (w - 110) + "," + (padding + 20) + ")");
+
+        // Add legend rectangles and labels
+        legend.selectAll("rect")
+            .data(keys)
+            .enter()
+            .append("rect")
+            .attr("x", 0)
+            .attr("y", function(d, i) { return i * 20; })
+            .attr("width", 18)
+            .attr("height", 18)
+            .attr("fill", function(d, i) { return color(i); });
+
+        legend.selectAll("text")
+            .data(keys)
+            .enter()
+            .append("text")
+            .attr("x", 24)
+            .attr("y", function(d, i) { return i * 20 + 13; })
+            .text(function(d) { return d; })
+            .style("font-size", "12px")
+            .attr("alignment-baseline", "middle");
 
     </script>
     <footer>COS30045 Data Visualisation<br>Jay Bloggs</footer>
