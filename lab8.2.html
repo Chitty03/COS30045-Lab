@@ -72,6 +72,22 @@
 			width: 100%;
 			bottom: 0;
 		}
+
+        /* Tooltip styles */
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: auto;
+            height: auto;
+            padding: 5px;
+            font-size: 12px;
+            background: #fff;
+            border: 1px solid #999;
+            border-radius: 5px;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
     </style>
 
     <!-- Make sure to include the D3.js library -->
@@ -88,39 +104,42 @@
     <h1>Victorian Number Unemployed by LGA</h1>
     <div id="map"></div>
     
+    <!-- Tooltip div (initially hidden) -->
+    <div id="tooltip" class="tooltip"></div>
+    
     <script>
         var width = 800;
         var height = 600;
-    
+
         // Define the color scale using D3's scaleQuantize function
         var color = d3.scaleQuantize()
             .range(d3.schemePurples[9])  // Using ColorBrewer's schemePurples for color scale
             .domain([0, 5000]);  // Adjust the domain based on unemployment range
-    
+
         // Define the projection and path for the map
         var projection = d3.geoMercator()
             .center([145, -37])  // Centering the map over Victoria
             .scale(4000)         // Adjust the scale for zoom level
             .translate([width / 2, height / 2]);
-    
+
         var path = d3.geoPath().projection(projection);
-    
+
         // Create the SVG container for the map
         var svg = d3.select("#map")
             .append("svg")
             .attr("width", width)
             .attr("height", height);
-    
+
         // Load the GeoJSON data (replace with correct Victorian LGA GeoJSON)
         d3.json("LGA_VIC.json").then(function(json) {
-    
+
             // Load the unemployment data
             d3.csv("VIC_LGA_unemployment.csv").then(function(data) {
                 // Map unemployment data to LGA properties in the GeoJSON
                 data.forEach(function(d) {
                     var lgaName = d.LGA;  // Get the LGA name from CSV
                     var unemployedCount = +d.unemployed;  // Get the unemployment number as integer
-    
+
                     // Find the corresponding LGA in the GeoJSON and assign the unemployment number
                     json.features.forEach(function(feature) {
                         if (feature.properties.LGA_name === lgaName) {
@@ -128,7 +147,7 @@
                         }
                     });
                 });
-    
+
                 // Draw the map and fill color based on unemployment data
                 svg.selectAll("path")
                     .data(json.features)
@@ -141,9 +160,14 @@
                         return value ? color(value) : "#ccc";  // Gray for missing data
                     })
                     .style("stroke", "#333");
-    
+
                 // Load Victorian city data and plot them
                 d3.csv("VIC_city.csv").then(function(cityData) {
+
+                    // Tooltip div
+                    var tooltip = d3.select("#tooltip");
+
+                    // Draw city circles
                     svg.selectAll("circle")
                         .data(cityData)
                         .enter()
@@ -156,24 +180,20 @@
                         })
                         .attr("r", 3)  // Circle radius for cities
                         .style("fill", "red")  // Red color for city markers
-                        .style("opacity", 0.7);
-    
-                    // Add city names
-                    svg.selectAll("text")
-                        .data(cityData)
-                        .enter()
-                        .append("text")
-                        .attr("x", function(d) {
-                            return projection([d.lon, d.lat])[0] + 5;  // Offset text by 5px for readability
+                        .style("opacity", 0.7)
+                        // Add tooltip functionality
+                        .on("mouseover", function(event, d) {
+                            tooltip.style("opacity", 1);  // Show the tooltip
                         })
-                        .attr("y", function(d) {
-                            return projection([d.lon, d.lat])[1] + 5;
+                        .on("mousemove", function(event, d) {
+                            tooltip.html(d.place)  // Set the city name in tooltip
+                                .style("left", (event.pageX + 10) + "px")  // Position the tooltip
+                                .style("top", (event.pageY - 15) + "px");
                         })
-                        .text(function(d) {
-                            return d.place;  // Display the city name
-                        })
-                        .style("font-size", "10px")
-                        .style("fill", "black");
+                        .on("mouseout", function(d) {
+                            tooltip.style("opacity", 0);  // Hide the tooltip
+                        });
+
                 });
             });
         });

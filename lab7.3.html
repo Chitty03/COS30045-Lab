@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stacked Bar Chart</title>
+    <title>Stacked Bar Chart with Legend</title>
     <style>
         body {
 			font-family: 'Arial', sans-serif;
@@ -84,7 +84,7 @@
         <a href="lab7.3.html" class="button">Lab7.3</a>
     </div> 
 
-    <h1>Stacked Bar Chart with Legend</h1>
+    <h1>Stacked Bar Chart with Horizontal Legend</h1>
     <div id="chart"></div>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
@@ -98,9 +98,9 @@
             { apples: 23, oranges: 17, grapes: 43 }
         ];
 
-        // Step 2: Set up the SVG dimensions
+        // Step 2: Set up the SVG dimensions (Increased height to 400)
         var w = 500;
-        var h = 300;
+        var h = 400;
         var padding = 40;
 
         // Step 3: Set up scales
@@ -113,7 +113,7 @@
             .domain([0, d3.max(dataset, function(d) {
                 return d.apples + d.oranges + d.grapes;
             })])
-            .range([h - padding, padding]);
+            .range([h - padding - 100, padding]);  // Reduced chart height to make room for legend
 
         // Step 4: Create the SVG canvas and group element
         var svg = d3.select("#chart")
@@ -156,35 +156,34 @@
         var xAxis = d3.axisBottom(xScale)
             .tickFormat(function(d, i) { return "Category " + (i + 1); });
         svg.append("g")
-            .attr("transform", "translate(0," + (h - padding) + ")")
+            .attr("transform", "translate(0," + (h - padding - 100) + ")")
             .call(xAxis);
 
-        // Step 11: Create a legend
+        // Step 11: Create a horizontal legend
         var keys = ["apples", "oranges", "grapes"];
 
-        // Create a group for the legend and place it
+        // Create a group for the legend and place it horizontally
         var legend = svg.append("g")
-            .attr("transform", "translate(" + (w - 110) + "," + (padding + 20) + ")");
+            .attr("transform", "translate(50," + (h - 50) + ")");  // Adjusted positioning of legend
 
-        // Add legend rectangles and labels
-        legend.selectAll("rect")
+        // Add legend circles and labels horizontally
+        legend.selectAll("circle")
             .data(keys)
             .enter()
-            .append("rect")
-            .attr("x", 0)
-            .attr("y", function(d, i) { return i * 20; })
-            .attr("width", 18)
-            .attr("height", 18)
+            .append("circle")
+            .attr("cx", function(d, i) { return i * 100; })  // Position circles horizontally
+            .attr("cy", 0)
+            .attr("r", 8)
             .attr("fill", function(d, i) { return color(i); });
 
         legend.selectAll("text")
             .data(keys)
             .enter()
             .append("text")
-            .attr("x", 24)
-            .attr("y", function(d, i) { return i * 20 + 13; })
+            .attr("x", function(d, i) { return i * 100 + 15; })  // Position text to the right of circles
+            .attr("y", 5)
             .text(function(d) { return d; })
-            .style("font-size", "12px")
+            .style("font-size", "14px")
             .attr("alignment-baseline", "middle");
 
     </script>
